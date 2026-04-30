@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-primary;
+    overflow-x: hidden;
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* SaaS Grid Background */
+  .bg-dot-pattern {
+    background-image: radial-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  
+  .bg-dot-pattern-dark {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Soft SaaS shadow */
+  .shadow-saas {
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.05), 0 1px 4px -1px rgba(0, 0, 0, 0.02);
+  }
+}
+
+@layer components {
+  /* Magnetic Pill Buttons */
+  .btn-pill {
+    @apply relative overflow-hidden inline-flex items-center justify-center font-sans font-medium rounded-full transition-transform;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  .btn-pill:hover {
+    transform: scale(1.03);
+  }
+  
+  .btn-pill:active {
+    transform: scale(0.95);
+  }
+  
+  .btn-pill-dark {
+    @apply bg-primary text-white hover:shadow-lg hover:shadow-primary/20;
+  }
+  
+  .btn-pill-light {
+    @apply bg-white border border-black/5 text-primary hover:bg-gray-50 hover:shadow-saas;
+  }
+
+  /* Bento Box Cards */
+  .bento-card {
+    @apply bg-white rounded-3xl border border-black/5 shadow-saas overflow-hidden relative transition-transform duration-500 hover:-translate-y-1;
+  }
+  
+  .bento-card-dark {
+    @apply bg-[#111111] rounded-3xl border border-white/10 shadow-xl overflow-hidden relative text-white transition-transform duration-500 hover:-translate-y-1;
+  }
+  
+  /* Layout constraints */
+  .container-custom {
+    @apply max-w-6xl mx-auto px-6 md:px-12;
+  }
+
+  /* Custom Mouse Cursor */
+  .custom-cursor {
+    @apply fixed top-0 left-0 w-4 h-4 bg-black rounded-full pointer-events-none z-[9999];
+    transform: translate(-50%, -50%);
+    will-change: transform;
+  }
+
+  /* Organic Morph Animation for Agent */
+  @keyframes morph {
+    0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  }
+  .animate-morph {
+    animation: morph 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+  .animate-float-organic {
+    animation: float 4s ease-in-out infinite;
+  }
+  
+  /* Disable default cursor on desktop when using custom cursor */
+  @media (pointer: fine) {
+    body {
+      cursor: none;
+    }
+    a, button, [role="button"], input, select, textarea {
+      cursor: none;
+    }
+  }
+
+  /* GSAP Base States */
+  .gsap-reveal {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
