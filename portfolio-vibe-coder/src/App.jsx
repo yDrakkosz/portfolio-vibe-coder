@@ -176,11 +176,11 @@ const FloatingAgentOverlay = ({ isActive, code, actionType, onComplete, closeTer
             : ''
         }`}
         style={{
-          background: 'rgba(0,0,0,0.06)',
-          backdropFilter: 'blur(40px) saturate(1.8)',
-          WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
-          border: isMasked ? 'none' : '1px solid rgba(0,0,0,0.08)',
-          boxShadow: isMasked ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.05), 0 8px 32px rgba(0,0,0,0.12)',
+          background: isMasked ? 'transparent' : 'rgba(15,15,15,0.85)',
+          backdropFilter: 'blur(16px) saturate(1.8)',
+          WebkitBackdropFilter: 'blur(16px) saturate(1.8)',
+          border: isMasked ? 'none' : '1px solid rgba(255,255,255,0.15)',
+          boxShadow: isMasked ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.4)',
           borderRadius: isMasked ? '0px' : undefined,
           ...(isMasked ? {
             WebkitMaskImage: `url('${getIconSvgUrl(actionType)}')`,
@@ -195,9 +195,9 @@ const FloatingAgentOverlay = ({ isActive, code, actionType, onComplete, closeTer
         }}
       >
         <div ref={dotsRef} className={`flex gap-1.5 absolute ${agentState === 'idle' ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="w-1.5 h-1.5 bg-black/30 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-          <div className="w-1.5 h-1.5 bg-black/30 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-          <div className="w-1.5 h-1.5 bg-black/30 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          <div className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+          <div className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+          <div className="w-1.5 h-1.5 bg-white/70 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
         </div>
         
         <div ref={textRef} className={`absolute inset-0 p-5 flex flex-col justify-center font-mono text-xs sm:text-sm text-[#D4D4D4] whitespace-pre-wrap break-words pointer-events-none ${isMasked ? 'hidden' : ''}`}>
@@ -581,32 +581,24 @@ function App() {
         });
 
         let isHoveringInteractive = false;
-        let isHoveringDark = false;
 
         const updateCursor = () => {
           if (isHoveringInteractive) {
             gsap.to(cursorRef.current, { 
               scale: 3, 
               duration: 0.3, 
-              ease: 'power2.out', 
-              backgroundColor: isHoveringDark ? 'rgba(255,59,48,0.5)' : 'rgba(0,0,0,0.1)' 
+              ease: 'power2.out',
+              opacity: 0.5
             });
           } else {
             gsap.to(cursorRef.current, { 
               scale: 1, 
               duration: 0.3, 
-              ease: 'power2.out', 
-              backgroundColor: isHoveringDark ? '#FF3B30' : '#000000' 
+              ease: 'power2.out',
+              opacity: 1
             });
           }
         };
-
-        // Dark areas trigger orange cursor
-        const darkElements = document.querySelectorAll('#projects, #contact, .bento-card-dark, .btn-pill-dark, .bg-primary');
-        darkElements.forEach(el => {
-          el.addEventListener('mouseenter', () => { isHoveringDark = true; updateCursor(); });
-          el.addEventListener('mouseleave', () => { isHoveringDark = false; updateCursor(); });
-        });
 
         // Interactive elements trigger expansion
         const interactiveElements = document.querySelectorAll('a, button, .bento-card, .bento-card-dark');
