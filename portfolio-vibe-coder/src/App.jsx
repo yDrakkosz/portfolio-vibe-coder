@@ -619,7 +619,7 @@ const Hero = ({ triggerAction }) => {
             <a href="#projects" onClick={(e) => triggerAction(e, "document.getElementById('projects').scrollIntoView({ behavior: 'smooth' });", 'scroll', 'Navegando para Projetos', () => document.getElementById('projects').scrollIntoView({behavior: 'smooth'}))} className="btn-pill btn-pill-dark px-8 py-4 text-base shadow-xl shadow-primary/10">
               Explorar Projetos
             </a>
-            <a href="/cv.pdf" download="Yan_Dutra_CV.pdf" onClick={(e) => { e.preventDefault(); triggerAction(e, "const a = document.createElement('a');\na.href = '/cv.pdf';\na.download = 'Yan_Dutra_CV.pdf';\na.click();", 'download', 'Baixando Currículo', () => { const a = document.createElement('a'); a.href = '/cv.pdf'; a.download = 'Yan_Dutra_CV.pdf'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }); }} className="btn-pill btn-pill-light px-8 py-4 text-base">
+            <a href="/cv.png" download="Yan_Dutra_CV.png" onClick={(e) => triggerAction(e, "const a = document.createElement('a');\na.href = '/cv.png';\na.download = 'Yan_Dutra_CV.png';\na.click();", 'download', 'Baixando Currículo', () => {})} className="btn-pill btn-pill-light px-8 py-4 text-base">
               Baixar CV
             </a>
           </div>
