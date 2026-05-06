@@ -5,11 +5,21 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  html::-webkit-scrollbar {
+    display: none;
   }
   
   body {
     @apply bg-background text-primary;
     overflow-x: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  body::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -22,15 +32,55 @@
     scrollbar-width: none;
   }
 
-  /* SaaS Grid Background */
-  .bg-dot-pattern {
-    background-image: radial-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px);
-    background-size: 24px 24px;
+  /* SaaS Grid Backgrounds with Glow Masks */
+  .bg-dot-pattern, .bg-dot-pattern-orange {
+    position: relative;
+    background-color: transparent;
   }
-  
-  .bg-dot-pattern-dark {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  .bg-dot-pattern-orange {
+    background-color: #0a0a0a;
+  }
+
+  .bg-dot-pattern::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
     background-size: 24px 24px;
+    background-position: calc(var(--mouse-x, 0) * -0.02px) calc(var(--mouse-y, 0) * -0.02px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bg-dot-pattern-orange::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 59, 48, 0.1) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: calc(var(--mouse-x, 0) * -0.02px) calc(var(--mouse-y, 0) * -0.02px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-dot-pattern::after, .bg-dot-pattern-orange::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(circle 350px at var(--mouse-local-x, -1000px) var(--mouse-local-y, -1000px), black, transparent);
+    mask-image: radial-gradient(circle 350px at var(--mouse-local-x, -1000px) var(--mouse-local-y, -1000px), black, transparent);
+    z-index: 0;
+  }
+
+  .bg-dot-pattern::after {
+    background-image: radial-gradient(rgba(0, 0, 0, 0.4) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: calc(var(--mouse-x, 0) * -0.02px) calc(var(--mouse-y, 0) * -0.02px);
+  }
+  .bg-dot-pattern-orange::after {
+    background-image: radial-gradient(rgba(255, 59, 48, 1) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: calc(var(--mouse-x, 0) * -0.02px) calc(var(--mouse-y, 0) * -0.02px);
   }
 
   /* Soft SaaS shadow */
@@ -40,6 +90,17 @@
 }
 
 @layer components {
+  /* Matte Black Floating Navbar */
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
   /* Magnetic Pill Buttons */
   .btn-pill {
     @apply relative overflow-hidden inline-flex items-center justify-center font-sans font-medium rounded-full transition-transform;
@@ -56,7 +117,7 @@
   }
   
   .btn-pill-dark {
-    @apply bg-primary text-white hover:shadow-lg hover:shadow-primary/20;
+    @apply bg-primary text-white hover:shadow-lg hover:shadow-primary/20 transition-colors;
   }
   
   .btn-pill-light {
@@ -76,13 +137,31 @@
   .container-custom {
     @apply max-w-6xl mx-auto px-6 md:px-12;
   }
+  /* Global cursor none for interactive elements (only for fine pointers) */
+  @media (pointer: fine) {
+    body, a, button, .bento-card, .bento-card-dark, .btn-pill, .btn-pill-dark, .btn-pill-light {
+      cursor: none !important;
+    }
+    
+    /* Maintain cursor inside iframes so native interactions work */
+    iframe {
+      cursor: auto !important;
+    }
+  }
 
-  /* Custom Mouse Cursor */
+  /* Custom Mouse Cursor - Liquid Glass / Sharp Ring */
   .custom-cursor {
-    @apply fixed top-0 left-0 w-4 h-4 bg-white rounded-full pointer-events-none z-[9999];
-    mix-blend-mode: difference;
+    @apply fixed top-0 left-0 rounded-full pointer-events-none z-[9999];
+    width: 16px;
+    height: 16px;
+    background: rgba(200, 200, 200, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(150, 150, 150, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translate(-50%, -50%);
-    will-change: transform;
+    /* Removed scale from will-change, added width/height for clean expansion */
+    will-change: transform, width, height, background-color, border-color;
   }
 
   /* Organic Morph Animation for Agent */
@@ -118,4 +197,27 @@
     opacity: 0;
     visibility: hidden;
   }
+
+  /* 3D HUD Card Slide-in */
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }
+
+
