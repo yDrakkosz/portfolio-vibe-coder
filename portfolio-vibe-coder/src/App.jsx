@@ -331,6 +331,201 @@ const IconCarousel = () => {
 
   return (
     <section ref={carouselRef} className="py-24 bg-background overflow-hidden relative">
+const sliceRef = React.useRef(null);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    
+    let ctx = gsap.context(() => {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          document.body.style.overflow = '';
+          if (onComplete) onComplete();
+        }
+      });
+
+      // 1. Orange Liquid Blob pops in and pulses
+      tl.to(sliceRef.current, {
+        scale: 1.5,
+        duration: 0.8,
+        ease: "back.out(1.7)"
+      });
+      tl.to(sliceRef.current, {
+        scale: 1,
+        duration: 0.4,
+        ease: "power2.inOut"
+      });
+
+      // 2. Black Doors split open & blob explodes and fades
+      tl.to(leftDoorRef.current, {
+        xPercent: -100,
+        duration: 1.2,
+        ease: "power4.inOut"
+      }, "+=0.15");
+
+      tl.to(rightDoorRef.current, {
+        xPercent: 100,
+        duration: 1.2,
+        ease: "power4.inOut"
+      }, "<");
+
+      tl.to(sliceRef.current, {
+        scale: 60,
+        opacity: 0,
+        duration: 1.2,
+        ease: "power4.inOut"
+      }, "<");
+
+      // 3. Text Blur/Scale Reveal (Liquid effect) on White Layer
+      tl.fromTo(text1Ref.current, {
+        filter: 'blur(20px)',
+        opacity: 0,
+        scale: 1.1,
+        y: 20
+      }, {
+        filter: 'blur(0px)',
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        duration: 1.2,
+        ease: "power3.out"
+      }, "-=0.8");
+
+      tl.fromTo(text2Ref.current, {
+        filter: 'blur(15px)',
+        opacity: 0,
+        x: -20
+      }, {
+        filter: 'blur(0px)',
+        opacity: 1,
+        x: 0,
+        duration: 1.2,
+        ease: "power3.out"
+      }, "-=1.0");
+
+      // 4. Pause for reading, then container slides up to reveal site
+      tl.to([text1Ref.current, text2Ref.current], {
+        y: -50,
+        opacity: 0,
+        duration: 0.6,
+        ease: "power3.in"
+      }, "+=1.2");
+
+      tl.to(containerRef.current, {
+        yPercent: -100,
+        duration: 1.2,
+        ease: "power4.inOut"
+      }, "-=0.3");
+      
+    }, containerRef);
+    return () => ctx.revert();
+  }, [onComplete]);
+
+  return (
+    <div ref={containerRef} className="fixed inset-0 z-[999999] bg-[#ffffff]">
+      {/* Layer 2: White background with Text */}
+      <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center overflow-hidden gap-3 md:gap-6 px-6">
+        <span 
+          ref={text1Ref} 
+          className="font-sans font-black text-[12vw] md:text-[7vw] leading-none uppercase tracking-[0.2em] text-[#0a0a0a]" 
+          style={{ willChange: 'transform, filter' }}
+        >
+          PORTFOLIO
+        </span>
+        <span 
+          ref={text2Ref} 
+          className="font-sans font-medium text-[12vw] md:text-[7vw] leading-none tracking-tight text-accent"
+          style={{ willChange: 'transform, filter' }}
+        >
+          Pronto.
+        </span>
+      </div>
+
+      {/* Layer 1: Black Split Doors */}
+      <div ref={leftDoorRef} className="absolute top-0 left-0 w-1/2 h-full bg-[#0a0a0a] origin-left border-r border-[#0a0a0a]"></div>
+      <div ref={rightDoorRef} className="absolute top-0 right-0 w-1/2 h-full bg-[#0a0a0a] origin-right border-l border-[#0a0a0a]"></div>
+      
+      {/* Center Liquid Blob */}
+      <div 
+        ref={sliceRef} 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 md:w-12 md:h-12 bg-accent rounded-full scale-0 animate-morph"
+        style={{ boxShadow: '0 0 40px rgba(255, 59, 48, 1)' }}
+      ></div>
+    </div>
+  );
+};
+
+// ==========================================
+// COMPONENT: Curved Icon Carousel
+// ==========================================
+const IconCarousel = () => {
+  const carouselRef = React.useRef(null);
+  const trackRef = React.useRef(null);
+  const itemRefs = React.useRef([]);
+
+  useEffect(() => {
+    let ctx = gsap.context(() => {
+      // 1. Scroll the track horizontally linked to vertical scroll
+      gsap.to(trackRef.current, {
+        xPercent: -15, // slower speed
+        ease: "none",
+        scrollTrigger: {
+          trigger: carouselRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1
+        }
+      });
+      
+      // 2. Animate the Y position based on distance to center of screen to form an arc
+      const updateYPositions = () => {
+        const centerX = window.innerWidth / 2;
+        itemRefs.current.forEach((el) => {
+          if (!el) return;
+          const rect = el.getBoundingClientRect();
+          const elCenterX = rect.left + rect.width / 2;
+          const distance = Math.abs(centerX - elCenterX);
+          // Calculate rotation to make items follow the tangent of the curve
+          const y = Math.pow(distance * 0.005, 2) * 15;
+          const sign = elCenterX < centerX ? -1 : 1;
+          const slope = 2 * (0.005 * 0.005 * 15) * distance * sign; 
+          const angle = Math.atan(slope) * (180 / Math.PI);
+          
+          gsap.set(el, { y: y, rotation: angle });
+        });
+      };
+
+      // Hook into GSAP ticker for smooth updates
+      gsap.ticker.add(updateYPositions);
+      
+      return () => gsap.ticker.remove(updateYPositions);
+    }, carouselRef);
+    return () => ctx.revert();
+  }, []);
+
+  const iconsList = [
+    <ArrowRight size={20} />,
+    <Zap size={20} />,
+    <Cpu size={20} />,
+    <Layers size={20} />,
+    <Layout size={20} />,
+    <FileCode2 size={20} />,
+    <span className="font-mono font-bold text-lg">{'<>'}</span>,
+    <Server size={20} />,
+    <Database size={20} />,
+    <Code2 size={20} />,
+    <Smartphone size={20} />,
+    <Globe2 size={20} />,
+    <span className="font-mono font-bold text-lg">{'{ }'}</span>,
+    <CheckCircle2 size={20} />,
+    <Lock size={20} />
+  ];
+
+  // Repeat icons to make a long track
+  const allIcons = [...iconsList, ...iconsList, ...iconsList, ...iconsList, ...iconsList, ...iconsList, ...iconsList, ...iconsList];
+
+  return (
+    <section ref={carouselRef} className="py-24 bg-background overflow-hidden relative">
       <div className="absolute inset-0 bg-gradient-to-b from-white/0 via-background to-white/0 z-10 pointer-events-none"></div>
       
       {/* Decorative center glow */}
@@ -338,7 +533,7 @@ const IconCarousel = () => {
 
       <div 
         ref={trackRef} 
-        className="flex items-center gap-6 md:gap-10 px-[50vw] w-max relative z-20"
+        className="flex items-center gap-6 md:gap-10 px-[15vw] md:px-[50vw] w-max relative z-20"
       >
         {allIcons.map((icon, index) => (
           <div 
@@ -606,7 +801,7 @@ const Hero = ({ triggerAction }) => {
             Engenharia Web de Alta Performance
           </div>
           
-          <h1 className="hero-anim gsap-reveal font-serif text-4xl md:text-7xl lg:text-[5.5rem] font-medium tracking-tight text-primary mb-6 leading-[1.05]">
+          <h1 className="hero-anim gsap-reveal font-serif text-4xl sm:text-5xl md:text-7xl lg:text-[5.5rem] font-medium tracking-tight text-primary mb-6 leading-[1.05]">
             Construindo a <br /><span className="italic text-accent">nova era</span><br />
             das interfaces.
           </h1>
@@ -678,7 +873,7 @@ const Hero = ({ triggerAction }) => {
 // ==========================================
 // COMPONENT: About (Human Centered)
 // ==========================================
-const About = () => {
+const About = ({ triggerAction }) => {
   return (
     <section id="about" className="reveal-section py-16 md:py-24 bg-background">
       <div className="container-custom">
@@ -705,12 +900,11 @@ const About = () => {
               </div>
             </div>
             
-            <div className="relative z-10 mt-auto">
               <h3 className="text-3xl md:text-5xl font-sans font-medium leading-tight mb-6">
                 Baseado em<br/>
                 <span className="text-white/50">Paranaguá</span>
               </h3>
-              <a href="#contact" className="inline-flex items-center gap-2 text-sm font-semibold border-b border-white/30 pb-1 hover:border-white transition-colors">
+              <a href="#contact" onClick={(e) => triggerAction(e, "document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });", 'scroll', 'Iniciando Projeto', () => document.getElementById('contact').scrollIntoView({behavior: 'smooth'}))} className="inline-flex items-center gap-2 text-sm font-semibold border-b border-white/30 pb-1 hover:border-white transition-colors">
                 Iniciar Projeto <ArrowRight size={16} />
               </a>
             </div>
@@ -882,7 +1076,7 @@ const Projects = ({ triggerAction }) => {
         {/* Timeline */}
         <div className="relative max-w-3xl mx-auto">
           {/* Vertical Line */}
-          <div className="absolute top-0 bottom-0 left-[20px] md:left-1/2 w-px bg-white/10 md:-translate-x-1/2"></div>
+          <div className="absolute top-0 bottom-0 left-[15px] md:left-1/2 w-px bg-white/10 md:-translate-x-1/2"></div>
 
           <div className="flex flex-col gap-12">
             {projects.map((proj, i) => {
@@ -891,10 +1085,10 @@ const Projects = ({ triggerAction }) => {
                 <div key={i} className={`reveal-up gsap-reveal relative flex flex-col md:flex-row items-start md:items-center gap-8 ${isEven ? 'md:flex-row-reverse' : ''}`}>
                   
                   {/* Timeline Dot */}
-                  <div className="absolute left-[20px] md:left-1/2 w-4 h-4 rounded-full bg-[#030303] border-2 border-[#ff3b30] -translate-x-[7.5px] md:-translate-x-1/2 mt-1 md:mt-0 z-10 shadow-[0_0_15px_rgba(255,59,48,0.5)]"></div>
+                  <div className="absolute left-[15px] md:left-1/2 w-4 h-4 rounded-full bg-[#030303] border-2 border-[#ff3b30] -translate-x-1/2 mt-1 md:mt-0 z-10 shadow-[0_0_15px_rgba(255,59,48,0.5)]"></div>
 
                   {/* Content Box */}
-                  <div className={`w-full md:w-1/2 pl-12 md:pl-0 ${isEven ? 'md:pr-12 text-left md:text-right' : 'md:pl-12 text-left'}`}>
+                  <div className={`w-full md:w-1/2 pl-10 md:pl-0 ${isEven ? 'md:pr-12 text-left md:text-right' : 'md:pl-12 text-left'}`}>
                     <div 
                       onClick={() => setActiveProject(i)}
                       className="group cursor-pointer p-6 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
@@ -1025,7 +1219,7 @@ const AnimatedStats = ({ isHovered }) => {
   }, [isHovered]);
 
   return (
-    <div className="text-7xl md:text-9xl font-sans font-black tracking-tighter text-white mb-2 flex items-baseline select-none">
+    <div className="text-6xl sm:text-7xl md:text-9xl font-sans font-black tracking-tighter text-white mb-2 flex items-baseline select-none">
       <span>1</span>
       <span>0</span>
       <div className="relative overflow-hidden" style={{ height: '1em', width: '0.62em' }}>
@@ -1273,6 +1467,189 @@ function App() {
         );
       });
 
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ==========================================
+// MAIN APP COMPONENT
+// ==========================================
+function App() {
+  const comp = React.useRef(null);
+  const cursorRef = React.useRef(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  
+  const [terminalState, setTerminalState] = React.useState({
+    isActive: false,
+    code: '',
+    actionType: 'scroll',
+    actionTitle: '',
+    onComplete: null
+  });
+
+  // Force scroll reset on reload
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  // Initial Intro Animation separated from main GSAP to wait for LoadingScreen
+  useEffect(() => {
+    if (isLoading) return;
+    let ctx = gsap.context(() => {
+      const introTl = gsap.timeline();
+      introTl.fromTo('.navbar', 
+        { y: -100, opacity: 0 }, 
+        { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', delay: 0.1 }
+      )
+      .fromTo('.hero-anim', 
+        { y: 40, autoAlpha: 0, rotationX: 5, transformOrigin: "bottom center" },
+        { y: 0, autoAlpha: 1, rotationX: 0, duration: 1, ease: 'power3.out', stagger: 0.1 },
+        "-=0.4"
+      );
+    }, comp);
+    return () => ctx.revert();
+  }, [isLoading]);
+
+  const triggerCodeAction = (e, codeStr, actionType, actionTitleStr, actionCb) => {
+    if(e && e.currentTarget) {
+      e.preventDefault();
+      const el = e.currentTarget;
+      const target = el.querySelector('svg') || el; // Target icon if exists
+      
+      if (actionType === 'scroll') {
+        gsap.to(target, { y: 8, yoyo: true, repeat: 3, duration: 0.15 });
+      } else if (actionType === 'download') {
+        gsap.to(target, { y: 6, scale: 0.9, yoyo: true, repeat: 3, duration: 0.15 });
+      } else if (actionType === 'open') {
+        gsap.to(target, { scale: 0.8, yoyo: true, repeat: 1, duration: 0.15 });
+      } else {
+        gsap.to(target, { scale: 0.85, yoyo: true, repeat: 1, duration: 0.1 });
+      }
+    } else if (e) {
+      e.preventDefault();
+    }
+    
+    setTerminalState({ 
+      isActive: true, 
+      code: codeStr, 
+      actionType: actionType,
+      actionTitle: actionTitleStr,
+      onComplete: () => {
+        if(actionCb) actionCb();
+      }
+    });
+  };
+
+  const closeTerminal = () => {
+    setTerminalState(prev => ({ ...prev, isActive: false }));
+  };
+
+  useEffect(() => {
+    let ctx = gsap.context(() => {
+      
+      // --- Cursor Logic ---
+      if (window.matchMedia("(pointer: fine)").matches) {
+        gsap.set(cursorRef.current, { xPercent: -50, yPercent: -50 });
+        
+        // Reduced duration for faster follow (less delay)
+        const xTo = gsap.quickTo(cursorRef.current, "x", { duration: 0.05, ease: "power3" });
+        const yTo = gsap.quickTo(cursorRef.current, "y", { duration: 0.05, ease: "power3" });
+
+        window.addEventListener("mousemove", (e) => {
+          document.documentElement.style.setProperty('--mouse-x', e.pageX);
+          document.documentElement.style.setProperty('--mouse-y', e.pageY);
+          
+          // Local mask variables for glowing dot patterns
+          document.querySelectorAll('.glow-section').forEach(section => {
+            const rect = section.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            section.style.setProperty('--mouse-local-x', `${x}px`);
+            section.style.setProperty('--mouse-local-y', `${y}px`);
+          });
+
+          xTo(e.clientX);
+          yTo(e.clientY);
+        });
+
+        let isHoveringInteractive = false;
+
+        const updateCursor = () => {
+          if (isHoveringInteractive) {
+            gsap.to(cursorRef.current, { 
+              width: 56,
+              height: 56,
+              duration: 0.3, 
+              ease: 'back.out(1.5)',
+              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+              borderColor: 'rgba(255, 59, 48, 0.8)',
+              borderWidth: '1px'
+            });
+          } else {
+            gsap.to(cursorRef.current, { 
+              width: 16,
+              height: 16,
+              duration: 0.3, 
+              ease: 'power2.out',
+              backgroundColor: 'rgba(200, 200, 200, 0.15)',
+              borderColor: 'rgba(150, 150, 150, 0.2)',
+              borderWidth: '1px'
+            });
+          }
+        };
+
+        // Interactive elements trigger expansion
+        const interactiveElements = document.querySelectorAll('a, button, .bento-card, .bento-card-dark, .btn-pill, .btn-pill-dark, .btn-pill-light');
+        interactiveElements.forEach(el => {
+          el.addEventListener('mouseenter', () => { isHoveringInteractive = true; updateCursor(); });
+          el.addEventListener('mouseleave', () => { isHoveringInteractive = false; updateCursor(); });
+        });
+
+        // Hide custom cursor over Spline so it doesn't freeze or overlap
+        const splineContainer = document.querySelector('.spline-container');
+        if (splineContainer) {
+          splineContainer.addEventListener('mouseenter', () => {
+            gsap.to(cursorRef.current, { opacity: 0, duration: 0.2 });
+          });
+          splineContainer.addEventListener('mouseleave', () => {
+            gsap.to(cursorRef.current, { opacity: 1, duration: 0.2 });
+          });
+        }
+      }
+      
+      // 1. Initial State Hiding (Revealed by introTl after LoadingScreen)
+      gsap.set('.navbar', { opacity: 0, y: -100 });
+      gsap.set('.hero-anim', { autoAlpha: 0, y: 40 });
+
+      // 2. Removed ScrollTrigger for navbar to maintain constant glassmorphism visibility
+
+      // 3. Scroll Reveal for Sections (About, Skills, Projects, Contact)
+      const sections = gsap.utils.toArray('.reveal-section');
+      sections.forEach(sec => {
+        const elements = sec.querySelectorAll('.reveal-up');
+        gsap.fromTo(elements, 
+          { y: 50, opacity: 0, autoAlpha: 0 },
+          { 
+            y: 0, opacity: 1, autoAlpha: 1, 
+            duration: 1, 
+            ease: 'power3.out', 
+            stagger: 0.15,
+            scrollTrigger: {
+              trigger: sec,
+              start: 'top 80%',
+              toggleActions: 'play none none reverse'
+            }
+          }
+        );
+      });
+
     }, comp);
 
     return () => ctx.revert();
@@ -1286,37 +1663,40 @@ function App() {
         {/* Custom Cursor */}
         <div ref={cursorRef} className="custom-cursor hidden md:block"></div>
 
-      {/* Floating Agent Overlay */}
-      <FloatingAgentOverlay {...terminalState} closeTerminal={closeTerminal} />
+        {/* Floating Agent Overlay */}
+        <FloatingAgentOverlay {...terminalState} closeTerminal={closeTerminal} />
 
-      {/* Navbar with solid dark glassmorphism to guarantee visibility on any background */}
-      <nav className="navbar fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between px-6 py-3 rounded-full w-[90%] max-w-4xl bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-        <div className="font-sans font-bold text-xl tracking-tight flex items-center gap-2 cursor-pointer text-white" onClick={(e) => triggerCodeAction(e, "window.scrollTo({ top: 0, behavior: 'smooth' });", 'scroll', 'Retornando ao Topo', () => window.scrollTo({top: 0, behavior: 'smooth'}))}>
-          Yan
-        </div>
-        <div className="hidden md:flex items-center gap-8 font-sans text-sm font-medium transition-colors text-white/70 hover:text-white">
-          <a href="#about" onClick={(e) => triggerCodeAction(e, "document.getElementById('about').scrollIntoView({ behavior: 'smooth' });", 'scroll', 'Acessando Sobre Mim', () => document.getElementById('about').scrollIntoView({behavior: 'smooth'}))} className="transition-colors hover:text-white">Sobre</a>
-          <a href="#skills" onClick={(e) => triggerCodeAction(e, "document.getElementById('skills').scrollIntoView({ behavior: 'smooth' });", 'scroll', 'Acessando Habilidades', () => document.getElementById('skills').scrollIntoView({behavior: 'smooth'}))} className="transition-colors hover:text-white">Habilidades</a>
-          <a href="#projects" onClick={(e) => triggerCodeAction(e, "document.getElementById('projects').scrollIntoView({ behavior: 'smooth' });", 'scroll', 'Acessando Projetos', () => document.getElementById('projects').scrollIntoView({behavior: 'smooth'}))} className="transition-colors hover:text-white">Projetos</a>
-        </div>
-        <a href="#contact" onClick={(e) => triggerCodeAction(e, "window.location.href = '#contact';", 'scroll', 'Iniciando Contato', () => window.location.href = '#contact')} className="px-5 py-2 text-sm shrink-0 font-bold bg-white text-black rounded-full hover:bg-white/90 transition-colors">
-          Iniciar Projeto
-        </a>
-      </nav>
+        {/* Navbar with solid dark glassmorphism */}
+        <nav className="navbar fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between px-6 py-3 rounded-full w-[90%] max-w-4xl bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+          <div className="font-sans font-bold text-xl tracking-tight flex items-center gap-2 cursor-pointer text-white" onClick={(e) => triggerCodeAction(e, "window.scrollTo({ top: 0, behavior: 'smooth' });", 'scroll', 'Retornando ao Topo', () => window.scrollTo({top: 0, behavior: 'smooth'}))}>
+            Yan
+          </div>
+          
+          {/* Desktop Links */}
+          <div className="hidden md:flex items-center gap-8 font-sans text-sm font-medium transition-colors text-white/70 hover:text-white">
+            <a href="#about" onClick={(e) => triggerCodeAction(e, "document.getElementById('about').scrollIntoView({ behavior: 'smooth' });", 'scroll', 'Acessando Sobre Mim', () => document.getElementById('about').scrollIntoView({behavior: 'smooth'}))} className="transition-colors hover:text-white">Sobre</a>
+            <a href="#skills" onClick={(e) => triggerCodeAction(e, "document.getElementById('skills').scrollIntoView({ behavior: 'smooth' });", 'scroll', 'Acessando Habilidades', () => document.getElementById('skills').scrollIntoView({behavior: 'smooth'}))} className="transition-colors hover:text-white">Habilidades</a>
+            <a href="#projects" onClick={(e) => triggerCodeAction(e, "document.getElementById('projects').scrollIntoView({ behavior: 'smooth' });", 'scroll', 'Acessando Projetos', () => document.getElementById('projects').scrollIntoView({behavior: 'smooth'}))} className="transition-colors hover:text-white">Projetos</a>
+          </div>
 
-      <main>
-        <Hero triggerAction={triggerCodeAction} />
-        <About />
-        <IconCarousel />
-        <Skills />
-        <Projects triggerAction={triggerCodeAction} />
-        <Contact triggerAction={triggerCodeAction} />
-      </main>
-    </div>
+          <div className="flex items-center gap-2">
+            <a href="#contact" onClick={(e) => triggerCodeAction(e, "window.location.href = '#contact';", 'scroll', 'Iniciando Contato', () => window.location.href = '#contact')} className="px-5 py-2 text-sm shrink-0 font-bold bg-white text-black rounded-full hover:bg-white/90 transition-colors">
+              Iniciar Projeto
+            </a>
+          </div>
+        </nav>
+
+        <main>
+          <Hero triggerAction={triggerCodeAction} />
+          <About triggerAction={triggerCodeAction} />
+          <IconCarousel />
+          <Skills />
+          <Projects triggerAction={triggerCodeAction} />
+          <Contact triggerAction={triggerCodeAction} />
+        </main>
+      </div>
     </>
   );
 }
 
 export default App;
-
-
