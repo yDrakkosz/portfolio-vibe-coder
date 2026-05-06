@@ -619,7 +619,7 @@ const Hero = ({ triggerAction }) => {
             <a href="#projects" onClick={(e) => triggerAction(e, "document.getElementById('projects').scrollIntoView({ behavior: 'smooth' });", 'scroll', 'Navegando para Projetos', () => document.getElementById('projects').scrollIntoView({behavior: 'smooth'}))} className="btn-pill btn-pill-dark px-8 py-4 text-base shadow-xl shadow-primary/10">
               Explorar Projetos
             </a>
-            <a href="#" onClick={(e) => triggerAction(e, "window.open('/cv.pdf', '_blank');\n// Baixando currículo...", 'download', 'Baixando Currículo', () => console.log('Baixar CV click'))} className="btn-pill btn-pill-light px-8 py-4 text-base">
+            <a href="/cv.pdf" download="Yan_Dutra_CV.pdf" onClick={(e) => { e.preventDefault(); triggerAction(e, "const a = document.createElement('a');\na.href = '/cv.pdf';\na.download = 'Yan_Dutra_CV.pdf';\na.click();", 'download', 'Baixando Currículo', () => { const a = document.createElement('a'); a.href = '/cv.pdf'; a.download = 'Yan_Dutra_CV.pdf'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }); }} className="btn-pill btn-pill-light px-8 py-4 text-base">
               Baixar CV
             </a>
           </div>
@@ -698,8 +698,8 @@ const About = () => {
             
             <div className="relative z-10 mt-auto">
               <h3 className="text-3xl md:text-5xl font-sans font-medium leading-tight mb-6">
-                Baseado no<br/>
-                <span className="text-white/50">Brasil</span>
+                Baseado em<br/>
+                <span className="text-white/50">Paranaguá</span>
               </h3>
               <a href="#contact" className="inline-flex items-center gap-2 text-sm font-semibold border-b border-white/30 pb-1 hover:border-white transition-colors">
                 Iniciar Projeto <ArrowRight size={16} />
@@ -714,7 +714,7 @@ const About = () => {
           <div className="flex flex-col gap-6">
             <div className="reveal-up gsap-reveal bento-card p-8 flex-1 flex flex-col justify-center">
               <p className="text-sm text-primary/60 font-medium leading-relaxed mb-4">
-                Desenvolvedor Front-end especializado em criar experiências digitais rápidas e escaláveis, utilizando tecnologias modernas.
+                Desenvolvedor Front-end Vibe Coder — transformo ideias em interfaces de alto impacto usando IA como copiloto e código de alta performance como motor.
               </p>
               <div className="flex items-center gap-1 text-accent">
                 {[1,2,3,4,5].map(i => <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>)}
@@ -723,11 +723,11 @@ const About = () => {
             
             <div className="reveal-up gsap-reveal bento-card p-8 flex-1 flex items-center gap-4 bg-accent text-white border-none shadow-[0_10px_30px_rgba(255,59,48,0.2)]">
               <div className="w-16 h-16 rounded-2xl bg-white p-1 shrink-0 overflow-hidden border-2 border-white">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop" loading="lazy" decoding="async" alt="Profile" className="w-full h-full object-cover rounded-xl grayscale" />
+                <img src="/yan-photo.jpg" loading="lazy" decoding="async" alt="Yan Dutra" className="w-full h-full object-cover object-[35%_15%] rounded-xl" style={{ objectPosition: '35% 15%' }} />
               </div>
               <div>
                 <p className="text-sm font-medium leading-tight italic">
-                  "Sólida experiência em projetos complexos e Design Systems."
+                  "Vibe Coder — onde a IA amplifica a criatividade humana."
                 </p>
               </div>
             </div>
@@ -980,27 +980,38 @@ const AnimatedStats = ({ isHovered }) => {
   const unitsRef = useRef(null);
   const plusRef = useRef(null);
   const questionRef = useRef(null);
+  const tweenRef = useRef(null);
 
   useEffect(() => {
+    // Kill any running tweens to prevent stacking on rapid hover
+    if (tweenRef.current) {
+      tweenRef.current.kill();
+    }
+    gsap.killTweensOf([unitsRef.current, plusRef.current, questionRef.current]);
+
     if (isHovered) {
-      gsap.to(unitsRef.current, {
+      const tl = gsap.timeline();
+      tl.to(unitsRef.current, {
         y: '-50%',
         duration: 0.6,
         ease: 'back.out(1.4)',
-      });
-      gsap.to(plusRef.current, { opacity: 0, y: -15, duration: 0.25, ease: 'power2.in' });
-      gsap.fromTo(questionRef.current,
+      })
+      .to(plusRef.current, { opacity: 0, y: -15, duration: 0.25, ease: 'power2.in' }, 0)
+      .fromTo(questionRef.current,
         { opacity: 0, y: 15 },
-        { opacity: 1, y: 0, duration: 0.35, delay: 0.2, ease: 'power2.out' }
+        { opacity: 1, y: 0, duration: 0.35, delay: 0.2, ease: 'power2.out' }, 0
       );
+      tweenRef.current = tl;
     } else {
-      gsap.to(unitsRef.current, {
+      const tl = gsap.timeline();
+      tl.to(unitsRef.current, {
         y: '0%',
         duration: 0.5,
         ease: 'power2.out',
-      });
-      gsap.to(questionRef.current, { opacity: 0, y: 15, duration: 0.25, ease: 'power2.in' });
-      gsap.to(plusRef.current, { opacity: 1, y: 0, duration: 0.35, delay: 0.15, ease: 'power2.out' });
+      })
+      .to(questionRef.current, { opacity: 0, y: 15, duration: 0.25, ease: 'power2.in' }, 0)
+      .to(plusRef.current, { opacity: 1, y: 0, duration: 0.35, delay: 0.15, ease: 'power2.out' }, 0);
+      tweenRef.current = tl;
     }
   }, [isHovered]);
 
@@ -1052,9 +1063,9 @@ const Contact = ({ triggerAction }) => {
                <Mail size={24} className="text-accent" />
              </div>
              <h3 className="font-serif text-4xl mb-8">Pronto para inovar?</h3>
-             <a href="mailto:rhuambello@gmail.com" className="inline-flex items-center justify-between w-full bg-white text-black px-6 py-4 rounded-2xl font-bold hover:bg-gray-200 transition-colors">
-               <span>rhuambello@gmail.com</span>
-               <ArrowRight size={20} />
+             <a href="mailto:yancdutra@gmail.com" className="inline-flex items-center justify-between w-full bg-white text-black px-6 py-4 rounded-2xl font-bold hover:bg-gray-200 transition-colors">
+                <span>yancdutra@gmail.com</span>
+                <ArrowRight size={20} />
              </a>
           </div>
 
@@ -1063,11 +1074,11 @@ const Contact = ({ triggerAction }) => {
         <div className="reveal-up gsap-reveal flex flex-col md:flex-row justify-between items-center text-xs font-sans font-medium text-white/40 border-t border-white/10 pt-8">
           <p className="mb-4 md:mb-0">© 2026 VibeCoder. Todos os direitos reservados.</p>
           <div className="flex gap-6">
-            <a href="https://linkedin.com/in/rhuanbello" onClick={(e) => triggerAction(e, `window.open('https://linkedin.com/in/rhuanbello', '_blank');`, 'link', 'Abrindo LinkedIn', () => window.open('https://linkedin.com/in/rhuanbello', '_blank'))} className="hover:text-white transition-colors flex items-center gap-2">
+            <a href="https://www.linkedin.com/in/yan-dutra" onClick={(e) => triggerAction(e, `window.open('https://www.linkedin.com/in/yan-dutra', '_blank');`, 'link', 'Abrindo LinkedIn', () => window.open('https://www.linkedin.com/in/yan-dutra', '_blank'))} className="hover:text-white transition-colors flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
               LinkedIn
             </a>
-            <a href="https://github.com/rhuanbello" onClick={(e) => triggerAction(e, `window.open('https://github.com/rhuanbello', '_blank');`, 'link', 'Abrindo GitHub', () => window.open('https://github.com/rhuanbello', '_blank'))} className="hover:text-white transition-colors flex items-center gap-2">
+            <a href="https://github.com/yDrakkosz" onClick={(e) => triggerAction(e, `window.open('https://github.com/yDrakkosz', '_blank');`, 'link', 'Abrindo GitHub', () => window.open('https://github.com/yDrakkosz', '_blank'))} className="hover:text-white transition-colors flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
               GitHub
             </a>
